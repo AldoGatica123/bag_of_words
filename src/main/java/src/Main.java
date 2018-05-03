@@ -1,4 +1,4 @@
-package src.com.ia;
+package src;
 
 public class Main {
 

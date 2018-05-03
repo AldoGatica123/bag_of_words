@@ -1,4 +1,5 @@
-apply plugin:'java'
+apply plugin: 'java'
+apply plugin: 'application'
 group 'aldogatica'
 version '1.0'
 
@@ -10,11 +11,11 @@ repositories {
 
 jar {
     manifest {
-        attributes 'Main-Class': 'src.com.ia.Main'
+        attributes 'Main-Class': 'src.Main'
     }
 }
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
-
+    compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.6.3'
 }
