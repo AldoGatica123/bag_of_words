@@ -1,4 +1,4 @@
-package src;
+package app;
 
 public class Main {
 
@@ -7,5 +7,11 @@ public class Main {
         GenModel genModel = new GenModel();
         GenController genController = new GenController(genView, genModel);
         genView.setVisible(true);
+
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            public void run() {
+//                genController.closeMongo();
+            }
+        }, "Shutdown-thread"));
     }
 }

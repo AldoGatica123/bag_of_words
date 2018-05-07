@@ -1,21 +1,25 @@
-package src;
+package app;
 
 import javax.swing.*;
+import javax.swing.text.DefaultCaret;
 import java.awt.*;
 
 public class GenView extends JFrame implements GenController.LogEntry {
+
+    private JButton fileChooserB;
     private JTextField filePathTF;
     private JButton fileReadB;
-    private JTextArea logsTF;
+    private JTextArea logsTA;
+    private JTextArea textTA;
     private JTextField inputTF;
     private JButton classifyB;
-    private JMenuItem settingsItem;
+    private JMenuItem clearItem;
     private JMenuItem xItem;
 
     GenView() {
         initComponents();
         this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        this.setSize(800, 400);
+        this.setSize(800, 600);
     }
 
     private void initComponents(){
@@ -26,19 +30,29 @@ public class GenView extends JFrame implements GenController.LogEntry {
 
         parentPanel.setLayout(new BorderLayout());
         northPanel.setLayout(new BorderLayout());
-        centerPanel.setLayout(new BorderLayout());
+        centerPanel.setLayout(new GridLayout());
         southPanel.setLayout(new BorderLayout());
 
-        filePathTF = new JTextField();
+        fileChooserB = new JButton("Choose training file");
+        filePathTF = new JTextField("src/main/resources/test_spam.txt");
         fileReadB = new JButton("Run");
-        logsTF = new JTextArea();
-        logsTF.setEditable(false);
+        logsTA = new JTextArea();
+        logsTA.setEditable(false);
+        JScrollPane scrollLog = new JScrollPane(logsTA);
+        textTA = new JTextArea();
+        textTA.setEditable(false);
+        JScrollPane scrollText = new JScrollPane(textTA);
         inputTF = new JTextField();
         classifyB = new JButton("Classify");
 
+        DefaultCaret caret = (DefaultCaret)logsTA.getCaret();
+        caret.setUpdatePolicy(DefaultCaret.OUT_BOTTOM);
+
+        northPanel.add(BorderLayout.WEST, fileChooserB);
         northPanel.add(BorderLayout.CENTER, filePathTF);
         northPanel.add(BorderLayout.EAST, fileReadB);
-        centerPanel.add(BorderLayout.CENTER, logsTF);
+        centerPanel.add(scrollLog);
+        centerPanel.add(scrollText);
         southPanel.add(BorderLayout.CENTER, inputTF);
         southPanel.add(BorderLayout.EAST, classifyB);
 
@@ -48,9 +62,9 @@ public class GenView extends JFrame implements GenController.LogEntry {
 
         JMenuBar menubar = new JMenuBar();
         JMenu menu = new JMenu("Settings");
-        settingsItem = new JMenuItem("Change app properties");
+        clearItem = new JMenuItem("Clear previous trainings");
         xItem = new JMenuItem("X");
-        menu.add(settingsItem);
+        menu.add(clearItem);
         menu.add(xItem);
         menubar.add(menu);
         this.setJMenuBar(menubar);
@@ -66,22 +80,35 @@ public class GenView extends JFrame implements GenController.LogEntry {
         this.filePathTF.setText(filePath);
     }
 
+    void clearText(){
+        textTA.setText("");
+    }
+
     void addButtonListener(GenController.ButtonListener buttonListener) {
         this.fileReadB.addActionListener(buttonListener);
     }
 
+    void addChooserListener(GenController.ChooserListener chooserListener) {
+        this.fileChooserB.addActionListener(chooserListener);
+    }
+
     void addMenuListener(GenController.SettingsListener settingsListener) {
-        this.settingsItem.addActionListener(settingsListener);
+        this.clearItem.addActionListener(settingsListener);
     }
 
     @Override
-    public void displayErrorMessage(String errorMessage){
+    public void error(String errorMessage){
         errorMessage = " - ERROR: ".concat(errorMessage);
         log(errorMessage);
     }
 
     @Override
+    public void textLog(String line) {
+        textTA.append(line + "\n");
+    }
+
+    @Override
     public void log(String logMessage) {
-        logsTF.append("\n" + logMessage);
+        logsTA.append(logMessage + "\n");
     }
 }

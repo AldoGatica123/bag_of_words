@@ -1,4 +1,4 @@
-package src;
+package app;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -24,6 +24,7 @@ class GenModel {
 
         try {
             input = new FileInputStream("src/main/resources/app.properties");
+
             properties.load(input);
         } catch (IOException ex) {
             ex.printStackTrace();

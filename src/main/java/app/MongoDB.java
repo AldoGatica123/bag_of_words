@@ -1,18 +1,19 @@
-package src;
+package app;
 
 import com.mongodb.*;
 import com.mongodb.client.MongoDatabase;
 
-import java.net.ConnectException;
-
 class MongoDB {
-
+    private MongoClient client;
     private MongoDatabase database;
 
     MongoDB(String databaseName) {
-        MongoClient client = new MongoClient();
+        this.client = new MongoClient();
         this.database = client.getDatabase(databaseName);
     }
 
+    public void closeConnection(){
+        client.close();
+    }
 
 }
