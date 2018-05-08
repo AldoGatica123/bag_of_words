@@ -8,6 +8,7 @@ public class Bag extends HashMap<String, Integer> {
 
     private HashMap<String, Integer> universe;
     private ArrayList<String> vocabulary;
+    final int smoother = 1;
 
     Bag() {
         this.universe = new HashMap<>();
@@ -22,7 +23,7 @@ public class Bag extends HashMap<String, Integer> {
     @Override
     public Integer get(Object key) {
         if (!this.containsKey(key)){
-            this.put((String) key, 0);
+            this.put((String) key, smoother);
         }
         return super.get(key);
     }

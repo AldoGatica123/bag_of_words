@@ -1,7 +1,5 @@
 package app;
 
-import com.oracle.tools.packager.Log;
-
 import java.util.ArrayList;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -11,7 +9,7 @@ class MLMagic implements Parser.ParserResults {
     private MLLog logger;
     private Bag bagOfWords;
 
-    public MLMagic(MLLog logger, Bag bagOfWords) {
+    MLMagic(MLLog logger, Bag bagOfWords) {
         this.logger = logger;
         this.bagOfWords = bagOfWords;
     }
@@ -20,11 +18,12 @@ class MLMagic implements Parser.ParserResults {
         SortedSet<String> sortedSet = new TreeSet<>(bagOfWords.keySet());
         for (String pair : sortedSet) {
             String[] pairS = pair.split("_");
-            logger.mlLog(String.format("P(%s | %s) = %s/%s", pairS[0], pairS[1], bagOfWords.get(pair), bagOfWords.getUniverseCountForPair(pair)));
+            logger.mlLog(String.format("P(%s | %s) = %s/%s", pairS[0], pairS[1], bagOfWords.get(pair),
+                    bagOfWords.getUniverseCountForPair(pair) + bagOfWords.getCategoryCount() * bagOfWords.smoother));
         }
         logger.mlLog("- - - - - - - - -");
         logger.mlLog("Vocabulary size: " + bagOfWords.getVocabularySize());
-        logger.mlLog("Universe size: " + bagOfWords.getCategoryCount());
+        logger.mlLog("Category count: " + bagOfWords.getCategoryCount());
 
         for (String key : bagOfWords.getUniverseKeySet()){
             logger.mlLog(String.format("P(%s) = %s/%s", key, bagOfWords.getUniverseCountFor(key), bagOfWords.getUniverseSize()));
@@ -32,33 +31,81 @@ class MLMagic implements Parser.ParserResults {
     }
 
     void classify(String query){
-        logger.mlLog(String.format("\nAnalysing %s\n", query));
-        String[] queryWords = query.split(" ");
-        SortedSet<String> sortedSet = new TreeSet<>(bagOfWords.getUniverseKeySet());
+        logger.mlLog(String.format("\nAnalysing \"%s\"\n", query));
+        SortedSet<String> classSet = new TreeSet<>(bagOfWords.getUniverseKeySet());
+        ArrayList<Double> classSums = makeLogSummation(query.split(" "), classSet);
+        classSums = exponientiate(classSums);
+        logger.mlLog("Normalize");
+        normalize(classSums, classSet);
+    }
+
+    private ArrayList<Double> makeLogSummation(String[] queryWords, SortedSet<String> classSet){
         ArrayList<Double> classSums = new ArrayList<>();
-        for (String classifier : sortedSet){
-            double logSum = calcPriorProbability(classifier);
-            logger.mlLog(String.format("  P(%s) = %s", classifier, logSum));
+        for (String classifier : classSet){
+            double logSum = calcPriorProbabilityLog(classifier);
+            logger.mlLog(String.format("ln( P(%s) ) = %s", classifier, logSum));
             for (String word : queryWords){
                 word = Parser.removePunctuation(word).trim();
                 logSum += calcProbabilityLog(word, classifier);
-                logger.mlLog(String.format("+ P(%s | %s) = %s", word, classifier, logSum));
+                logger.mlLog(String.format("+ ln( P(%s | %s) ) = %s", word, classifier, logSum));
             }
             classSums.add(logSum);
         }
-        //todo normalize
+        return classSums;
+    }
+
+    private ArrayList<Double> makeCompleteLogSummation(String[] queryWords, SortedSet<String> classSet){
+        ArrayList<Double> classSums = new ArrayList<>();
+        for (String classifier : classSet){
+            double logSum = calcPriorProbabilityLog(classifier);
+            logger.mlLog(String.format("ln( P(%s) ) = %s", classifier, logSum));
+            for (String word : queryWords){
+                word = Parser.removePunctuation(word).trim();
+                logSum += calcProbabilityLog(word, classifier);
+                logger.mlLog(String.format("+ ln( P(%s | %s) ) = %s", word, classifier, logSum));
+            }
+            classSums.add(logSum);
+        }
+        return classSums;
     }
 
     private double calcProbabilityLog(String word, String classifier){
         double numerator = bagOfWords.get(word + "_" + classifier);
-        double denominator = (double) bagOfWords.getUniverseCountFor(classifier);
+        double denominator = (double) bagOfWords.getUniverseCountFor(classifier) + bagOfWords.getCategoryCount() * bagOfWords.smoother;
         return Math.log(numerator / denominator);
     }
 
-    private double calcPriorProbability(String classifier){
+    private double calcPriorProbabilityLog(String classifier){
         double numerator = bagOfWords.getUniverseCountFor(classifier);
         double denominator = bagOfWords.getUniverseSize();
         return Math.log(numerator / denominator);
+    }
+
+    private void normalize(ArrayList<Double> classSums, SortedSet<String> classSet){
+        double summation = summation(classSums);
+        int i = 0;
+        for (String classifier : classSet){
+            logger.mlLog(String.format("%s / %s", classSums.get(i), summation));
+            logger.mlLog(String.format("P(%s | Π Wi ) = %s", classifier, classSums.get(i) / summation));
+            i++;
+        }
+    }
+
+    private double summation(ArrayList<Double> doubleArrayList){
+        double sum = 0;
+        for (Double val : doubleArrayList){
+            sum += val;
+        }
+        return sum;
+    }
+
+    private ArrayList<Double> exponientiate(ArrayList<Double> logArrayList){
+        int i = 0;
+        for (Double ln : logArrayList){
+            logArrayList.set(i, Math.exp(ln));
+            i++;
+        }
+        return logArrayList;
     }
 
     @Override
