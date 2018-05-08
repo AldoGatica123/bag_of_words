@@ -14,7 +14,6 @@ public class GenView extends JFrame implements GenController.LogEntry {
     private JTextField inputTF;
     private JButton classifyB;
     private JMenuItem clearItem;
-    private JMenuItem xItem;
 
     GenView() {
         initComponents();
@@ -34,7 +33,7 @@ public class GenView extends JFrame implements GenController.LogEntry {
         southPanel.setLayout(new BorderLayout());
 
         fileChooserB = new JButton("Choose training file");
-        filePathTF = new JTextField("src/main/resources/test_spam.txt");
+        filePathTF = new JTextField("src/main/resources/video.txt");
         fileReadB = new JButton("Run");
         logsTA = new JTextArea();
         logsTA.setEditable(false);
@@ -63,9 +62,7 @@ public class GenView extends JFrame implements GenController.LogEntry {
         JMenuBar menubar = new JMenuBar();
         JMenu menu = new JMenu("Settings");
         clearItem = new JMenuItem("Clear previous trainings");
-        xItem = new JMenuItem("X");
         menu.add(clearItem);
-        menu.add(xItem);
         menubar.add(menu);
         this.setJMenuBar(menubar);
 
@@ -80,16 +77,28 @@ public class GenView extends JFrame implements GenController.LogEntry {
         this.filePathTF.setText(filePath);
     }
 
+    String getQuery(){
+        return inputTF.getText();
+    }
+
+    void clearQuery(){
+        inputTF.setText("");
+    }
+
     void clearText(){
         textTA.setText("");
     }
 
-    void addButtonListener(GenController.ButtonListener buttonListener) {
+    void addButtonListener(GenController.TrainerListener buttonListener) {
         this.fileReadB.addActionListener(buttonListener);
     }
 
     void addChooserListener(GenController.ChooserListener chooserListener) {
         this.fileChooserB.addActionListener(chooserListener);
+    }
+
+    void addClassify(GenController.ClassifierListener classifierListener){
+        this.classifyB.addActionListener(classifierListener);
     }
 
     void addMenuListener(GenController.SettingsListener settingsListener) {

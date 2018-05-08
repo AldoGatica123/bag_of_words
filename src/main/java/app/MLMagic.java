@@ -1,5 +1,7 @@
 package app;
 
+import com.oracle.tools.packager.Log;
+
 import java.util.ArrayList;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -22,16 +24,42 @@ class MLMagic implements Parser.ParserResults {
         }
         logger.mlLog("- - - - - - - - -");
         logger.mlLog("Vocabulary size: " + bagOfWords.getVocabularySize());
-        logger.mlLog("Universe size: " + bagOfWords.getUniverseSize());
-        int sum = 0;
+        logger.mlLog("Universe size: " + bagOfWords.getCategoryCount());
+
         for (String key : bagOfWords.getUniverseKeySet()){
-            sum += bagOfWords.getUniverseCountFor(key);
-        }
-        for (String key : bagOfWords.getUniverseKeySet()){
-            logger.mlLog(String.format("P(%s) = %s/%s", key, bagOfWords.getUniverseCountFor(key), sum));
+            logger.mlLog(String.format("P(%s) = %s/%s", key, bagOfWords.getUniverseCountFor(key), bagOfWords.getUniverseSize()));
         }
     }
 
+    void classify(String query){
+        logger.mlLog(String.format("\nAnalysing %s\n", query));
+        String[] queryWords = query.split(" ");
+        SortedSet<String> sortedSet = new TreeSet<>(bagOfWords.getUniverseKeySet());
+        ArrayList<Double> classSums = new ArrayList<>();
+        for (String classifier : sortedSet){
+            double logSum = calcPriorProbability(classifier);
+            logger.mlLog(String.format("P(%s) = %s", classifier, logSum));
+            for (String word : queryWords){
+                word = Parser.removePunctuation(word).trim();
+                logSum += calcProbabilityLog(word, classifier);
+                logger.mlLog(String.format("+ P(%s | %s) = %s", word, classifier, logSum));
+            }
+            classSums.add(logSum);
+        }
+        //todo normalize
+    }
+
+    private double calcProbabilityLog(String word, String classifier){
+        double numerator = bagOfWords.get(word + "_" + classifier);
+        double denominator = (double) bagOfWords.getUniverseCountFor(classifier);
+        return Math.log(numerator / denominator);
+    }
+
+    private double calcPriorProbability(String classifier){
+        double numerator = bagOfWords.getUniverseCountFor(classifier);
+        double denominator = bagOfWords.getUniverseSize();
+        return Math.log(numerator / denominator);
+    }
 
     @Override
     public void correctPair(String word, String tag) {

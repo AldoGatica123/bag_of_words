@@ -19,6 +19,14 @@ public class Bag extends HashMap<String, Integer> {
         return super.put(key, value);
     }
 
+    @Override
+    public Integer get(Object key) {
+        if (!this.containsKey(key)){
+            this.put((String) key, 0);
+        }
+        return super.get(key);
+    }
+
     void foundTag(String tag){
         Integer i = universe.get(tag);
         if (i == null){
@@ -57,8 +65,16 @@ public class Bag extends HashMap<String, Integer> {
         return vocabulary.size();
     }
 
-    int getUniverseSize(){
+    int getCategoryCount(){
         return universe.size();
+    }
+
+    int getUniverseSize(){
+        int sum = 0;
+        for (String key : universe.keySet()){
+            sum += getUniverseCountFor(key);
+        }
+        return sum;
     }
 
     void destroyUniverse(){

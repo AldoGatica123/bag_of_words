@@ -70,7 +70,7 @@ public class Parser {
         }
     }
 
-    private String removePunctuation(String s) {
+    static String removePunctuation(String s) {
         StringBuilder res = new StringBuilder();
         for (Character c : s.toCharArray()) {
             if(Character.isLetterOrDigit(c))

@@ -1,5 +1,8 @@
 package app;
 
+
+import com.oracle.tools.packager.Log;
+
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.event.ActionEvent;
@@ -18,9 +21,10 @@ class GenController implements MLMagic.MLLog, Parser.ParserLog {
         this.theModel = theModel;
         this.logger = theView;
 
-        this.theView.addButtonListener(new ButtonListener());
+        this.theView.addButtonListener(new TrainerListener());
         this.theView.addChooserListener(new ChooserListener());
         this.theView.addMenuListener(new SettingsListener());
+        this.theView.addClassify(new ClassifierListener());
         startProgram();
     }
 
@@ -36,9 +40,6 @@ class GenController implements MLMagic.MLLog, Parser.ParserLog {
         Parser parser = new Parser(this, magic, filePath);
         parser.run();
     }
-
-
-
 
     @Override
     public void mlLog(String logMessage) {
@@ -90,13 +91,20 @@ class GenController implements MLMagic.MLLog, Parser.ParserLog {
         }
     }
 
-    class ButtonListener implements ActionListener{
+    class TrainerListener implements ActionListener{
         public void actionPerformed(ActionEvent e) {
             theView.clearText();
-            String filePath = theView.getFilePath();
-            theModel.setFilePath(filePath);
-            startParser(filePath);
+            theModel.setFilePath(theView.getFilePath());
+            startParser(theModel.getFilePath());
             magic.summary();
+        }
+    }
+
+    class ClassifierListener implements ActionListener{
+        public void actionPerformed(ActionEvent e) {
+            String query = theView.getQuery();
+            if (!query.trim().equals(""))
+               magic.classify(query);
         }
     }
 

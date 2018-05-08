@@ -24,7 +24,6 @@ class GenModel {
 
         try {
             input = new FileInputStream("src/main/resources/app.properties");
-
             properties.load(input);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -40,12 +39,12 @@ class GenModel {
 
     }
 
-    String getDBName(){
-        String dbName = properties.getProperty("DB_NAME");
-        if (dbName == null){
-            dbName = "ia_project";
-        }
-        return dbName;
-    }
+//    String getDBName(){
+//        String dbName = properties.getProperty("DB_NAME");
+//        if (dbName == null){
+//            dbName = "ia_project";
+//        }
+//        return dbName;
+//    }
 
 }
