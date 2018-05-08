@@ -38,7 +38,7 @@ class MLMagic implements Parser.ParserResults {
         ArrayList<Double> classSums = new ArrayList<>();
         for (String classifier : sortedSet){
             double logSum = calcPriorProbability(classifier);
-            logger.mlLog(String.format("P(%s) = %s", classifier, logSum));
+            logger.mlLog(String.format("  P(%s) = %s", classifier, logSum));
             for (String word : queryWords){
                 word = Parser.removePunctuation(word).trim();
                 logSum += calcProbabilityLog(word, classifier);

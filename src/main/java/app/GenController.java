@@ -1,8 +1,5 @@
 package app;
 
-
-import com.oracle.tools.packager.Log;
-
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.event.ActionEvent;
@@ -113,6 +110,7 @@ class GenController implements MLMagic.MLLog, Parser.ParserLog {
             logger.log("- - - - - - - - - -");
             logger.log("Clearing training data");
             bagOfWords.destroyUniverse();
+            theView.clearText();
             logger.log("Cleared");
         }
     }

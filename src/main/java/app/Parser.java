@@ -2,7 +2,7 @@ package app;
 
 import java.io.*;
 
-public class Parser {
+class Parser {
 
     private ParserLog logger;
     private String filePath;
@@ -24,10 +24,7 @@ public class Parser {
 
     private boolean checkLine(String s){
         s = s.trim();
-        if (s.equals("")){
-//            results.errorFound("Blank line, ignored");
-        }
-        else {
+        if (!s.equals("")){
             if (!s.contains("|")){
                 results.errorFound("Pipe not found, ignored");
             }
@@ -79,6 +76,8 @@ public class Parser {
         return res.toString();
     }
 
+    //TODO solo leer el 75% del archivo
+    //TODO testear con el otro 25%
     private void readFile(){
         InputStream ins = null;
         Reader r = null;
