@@ -45,8 +45,13 @@ class MLMagic implements Parser.ParserResults {
                 tagFound(maxClass);
             }
         }
-        logger.mlLog("\n");
-        summary();
+        logger.mlLog("- - - - - - - - -");
+        logger.mlLog("Vocabulary size: " + bagOfWords.getVocabularySize());
+        logger.mlLog("Category count: " + bagOfWords.getCategoryCount());
+
+        for (String key : bagOfWords.getUniverseKeySet()){
+            logger.mlLog(String.format("P(%s) = %s/%s", key, bagOfWords.getUniverseCountFor(key), bagOfWords.getUniverseSize()));
+        }
     }
 
     private ArrayList<Double> makeLogSummation(String[] queryWords, SortedSet<String> classSet){
