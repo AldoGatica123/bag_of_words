@@ -33,9 +33,10 @@ class MLMagic implements Parser.ParserResults {
     void classify(String query){
         logger.mlLog(String.format("\nAnalysing \"%s\"\n", query));
         SortedSet<String> classSet = new TreeSet<>(bagOfWords.getUniverseKeySet());
-        ArrayList<Double> classSums = makeLogSummation(query.split(" "), classSet);
+        ArrayList<Double> classSums = makeCompleteLogSummation(query.split(" "), classSet);
+//        ArrayList<Double> classSums = makeLogSummation(query.split(" "), classSet);
         classSums = exponientiate(classSums);
-        logger.mlLog("Normalize");
+        logger.mlLog(String.format("\nNormalize \"%s\"", query));
         normalize(classSums, classSet);
     }
 
@@ -56,13 +57,27 @@ class MLMagic implements Parser.ParserResults {
 
     private ArrayList<Double> makeCompleteLogSummation(String[] queryWords, SortedSet<String> classSet){
         ArrayList<Double> classSums = new ArrayList<>();
+        ArrayList<String> vocabulary = bagOfWords.getVocabulary();
         for (String classifier : classSet){
             double logSum = calcPriorProbabilityLog(classifier);
             logger.mlLog(String.format("ln( P(%s) ) = %s", classifier, logSum));
-            for (String word : queryWords){
-                word = Parser.removePunctuation(word).trim();
-                logSum += calcProbabilityLog(word, classifier);
-                logger.mlLog(String.format("+ ln( P(%s | %s) ) = %s", word, classifier, logSum));
+            for (String word: vocabulary){
+                boolean wordIsInQuery = false;
+                for (String queryWord : queryWords){
+                    queryWord = Parser.removePunctuation(queryWord).trim();
+                    if (queryWord.equals(word)){
+                        wordIsInQuery = true;
+                        break;
+                    }
+                }
+                if (wordIsInQuery){
+                    logSum += calcProbabilityLog(word, classifier);
+                    logger.mlLog(String.format("+ ln( P(%s | %s) ) = %s", word, classifier, logSum));
+                }
+                else {
+                    logSum += calcNegProbabilityLog(word, classifier);
+                    logger.mlLog(String.format("+ ln( P(%s | ~%s) ) = %s", word, classifier, logSum));
+                }
             }
             classSums.add(logSum);
         }
@@ -75,6 +90,12 @@ class MLMagic implements Parser.ParserResults {
         return Math.log(numerator / denominator);
     }
 
+    private double calcNegProbabilityLog(String word, String classifier){
+        double numerator = bagOfWords.get(word + "_" + classifier);
+        double denominator = (double) bagOfWords.getUniverseCountFor(classifier) + bagOfWords.getCategoryCount() * bagOfWords.smoother;
+        return Math.log(1 - (numerator / denominator));
+    }
+
     private double calcPriorProbabilityLog(String classifier){
         double numerator = bagOfWords.getUniverseCountFor(classifier);
         double denominator = bagOfWords.getUniverseSize();
@@ -83,12 +104,20 @@ class MLMagic implements Parser.ParserResults {
 
     private void normalize(ArrayList<Double> classSums, SortedSet<String> classSet){
         double summation = summation(classSums);
+        double maxVal = 0;
+        String maxClass = "";
         int i = 0;
         for (String classifier : classSet){
             logger.mlLog(String.format("%s / %s", classSums.get(i), summation));
-            logger.mlLog(String.format("P(%s | Π Wi ) = %s", classifier, classSums.get(i) / summation));
+            double probability = classSums.get(i) / summation;
+            logger.mlLog(String.format("P(%s | Π Wi ) = %s", classifier, probability));
+            if (maxVal < probability){
+                maxClass = classifier;
+                maxVal = probability;
+            }
             i++;
         }
+        logger.mlLog(String.format("%s is the most likely outcome with  %.2f%%", maxClass, maxVal * 100));
     }
 
     private double summation(ArrayList<Double> doubleArrayList){

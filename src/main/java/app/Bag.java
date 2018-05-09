@@ -45,6 +45,10 @@ public class Bag extends HashMap<String, Integer> {
         }
     }
 
+    public ArrayList<String> getVocabulary() {
+        return vocabulary;
+    }
+
     private String getTagFromPair(String key){
         String[] cleanWord = key.split("_");
         return cleanWord[1];
