@@ -76,8 +76,6 @@ class Parser {
         return res.toString();
     }
 
-    //TODO solo leer el 75% del archivo
-    //TODO testear con el otro 25%
     private void readFile(){
         InputStream ins = null;
         Reader r = null;

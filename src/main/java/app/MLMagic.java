@@ -37,7 +37,16 @@ class MLMagic implements Parser.ParserResults {
 //        ArrayList<Double> classSums = makeLogSummation(query.split(" "), classSet);
         classSums = exponientiate(classSums);
         logger.mlLog(String.format("\nNormalize \"%s\"", query));
-        normalize(classSums, classSet);
+        String maxClass = normalizeAndGetMax(classSums, classSet);
+        for (String word : query.split(" ")){
+            if (!word.isEmpty()){
+                correctPair(word, maxClass);
+                wordFound(word);
+                tagFound(maxClass);
+            }
+        }
+        logger.mlLog("\n");
+        summary();
     }
 
     private ArrayList<Double> makeLogSummation(String[] queryWords, SortedSet<String> classSet){
@@ -102,7 +111,7 @@ class MLMagic implements Parser.ParserResults {
         return Math.log(numerator / denominator);
     }
 
-    private void normalize(ArrayList<Double> classSums, SortedSet<String> classSet){
+    private String normalizeAndGetMax(ArrayList<Double> classSums, SortedSet<String> classSet){
         double summation = summation(classSums);
         double maxVal = 0;
         String maxClass = "";
@@ -118,6 +127,7 @@ class MLMagic implements Parser.ParserResults {
             i++;
         }
         logger.mlLog(String.format("%s is the most likely outcome with  %.2f%%", maxClass, maxVal * 100));
+        return maxClass;
     }
 
     private double summation(ArrayList<Double> doubleArrayList){
